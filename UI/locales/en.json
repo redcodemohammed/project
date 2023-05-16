@@ -1,0 +1,22 @@
+{
+  "actions": {
+    "logout": "sign out"
+  },
+  "errors": {
+    "validation": {
+      "invalid": "This field is not valid",
+      "required": "This field is required",
+      "shorter": "The number of characters in this field is less than required"
+    }
+  },
+  "views": {
+    "login": {
+      "email": "E-mail",
+      "login": "sign in",
+      "password": "password"
+    },
+    "register": {
+      "register": "Create a new account"
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "preinstall": "git pull"
+  },
+  "devDependencies": {
+    "@mdi/js": "^7.2.96",
+    "@nuxtjs/i18n": "8.0.0-beta.10",
+    "@sidebase/nuxt-auth": "^0.4.4",
+    "@types/node": "^18.16.9",
+    "@typescript/lib-dom": "npm:@types/web@^0.0.99",
+    "@vueuse/core": "^9.13.0",
+    "@vueuse/nuxt": "^9.13.0",
+    "nuxt": "^3.4.3",
+    "nuxt-typed-router": "^3.2.2"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.2.96",
+    "@nuxtjs/google-fonts": "^3.0.0",
+    "@pinia/nuxt": "^0.4.10",
+    "@popperjs/core": "^2.11.7",
+    "@sweetalert2/theme-material-ui": "^5.0.15",
+    "@vuepic/vue-datepicker": "^4.5.1",
+    "date-fns": "^2.30.0",
+    "nuxt-socket-io": "^3.0.12",
+    "pinia": "^2.0.36",
+    "sass": "^1.62.1",
+    "sweetalert2": "^11.7.5",
+    "typescript": "^5.0.4",
+    "v-calendar": "^3.0.3",
+    "vite-plugin-vuetify": "^1.0.2",
+    "vuetify": "^3.2.4"
+  }
+}
