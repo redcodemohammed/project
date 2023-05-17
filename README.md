@@ -6,6 +6,7 @@ This is a web application built with Node.js, AdonisJS, and Postgres on the back
 
 - Node.js
 - Postgres
+- Git
 
 ## Installation
 
