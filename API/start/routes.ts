@@ -42,6 +42,7 @@ Route.group(() => {
     Route.delete('/:id', 'MedicinesController.removeMedicine')
     Route.patch('/:id/state', 'MedicinesController.toggleMedicineState')
     Route.get('/today', 'MedicinesController.getTodaysMedicines')
+    Route.patch('/:id', 'MedicinesController.takePill')
   })
     .middleware('auth')
     .prefix('medicines')
@@ -52,4 +53,13 @@ Route.group(() => {
   })
     .middleware('auth')
     .prefix('notifications')
+
+  // Appointments group
+  Route.group(() => {
+    Route.post('/', 'AppointmentsController.create')
+    Route.get('/', 'AppointmentsController.index')
+    Route.patch('/:id', 'AppointmentsController.acceptAppointment')
+  })
+    .middleware('auth')
+    .prefix('appointments')
 }).prefix('v1')

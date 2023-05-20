@@ -12,16 +12,18 @@ const $formatters = useFormatters()
 // if the user is patient then fetch the today's medicines list
 const todaysMedicines = ref<Medicine[]>([])
 if ($authStore.user?.user_type === UserType.Patient) {
-  const loading = ref(true)
+  await loadMedicines()
+}
+
+async function loadMedicines() {
   todaysMedicines.value = await $authFetch<Medicine[]>(`/medicines/today`, { method: 'GET' })
-  loading.value = false
 }
 </script>
 <template>
   <v-container>
     <v-row justify="start" v-if="$authStore.user?.user_type === UserType.Patient">
       <v-col cols="12" sm="6" lg="3" v-for="medicine in todaysMedicines">
-        <MedicineCard :medicine="medicine"></MedicineCard>
+        <MedicineCard @reload="loadMedicines" :medicine="medicine"></MedicineCard>
       </v-col>
       <v-col>
         <v-alert

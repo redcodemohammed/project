@@ -29,27 +29,7 @@ defineProps<DoctorCardProps>()
       </v-card-subtitle>
     </v-card-item>
 
-    <v-card-text>
-      <!-- <div class="my-4 text-subtitle-1">$ • Italian, Cafe</div> -->
-      <!--  -->
-      <!-- <div>Small plates, salads & sandwiches - an intimate setting with 12 indoor seats plus patio seating.</div> -->
-    </v-card-text>
-
     <v-divider class="mx-4 mb-1"></v-divider>
-
-    <!-- <v-card-title>اوقات التوفر</v-card-title>
-
-    <div class="px-4">
-      <v-chip-group>
-        <v-chip>5:30PM</v-chip>
-
-        <v-chip>7:30PM</v-chip>
-
-        <v-chip>8:00PM</v-chip>
-
-        <v-chip>9:00PM</v-chip>
-      </v-chip-group>
-    </div> -->
 
     <v-card-actions>
       <v-btn
@@ -59,7 +39,7 @@ defineProps<DoctorCardProps>()
         :to="{ path: '/chat', query: { doctorID: doctor.user?.id } }">
         التواصل
       </v-btn>
-      <v-btn variant="text"> حجز موعد </v-btn>
+      <dialogs-book-appointment :doctor="doctor"></dialogs-book-appointment>
     </v-card-actions>
   </v-card>
 </template>

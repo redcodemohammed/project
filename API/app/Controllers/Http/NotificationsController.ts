@@ -1,7 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import User from '../../Models/User'
+import User from 'App/Models/User'
 import { schema } from '@ioc:Adonis/Core/Validator'
-import Subscription from '../../Models/Subscription'
+import Subscription from 'App/Models/Subscription'
 
 export default class NotificationsController {
   /**

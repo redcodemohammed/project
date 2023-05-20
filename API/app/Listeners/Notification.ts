@@ -1,10 +1,11 @@
 // import type { EventsList } from '@ioc:Adonis/Core/Event'
 import Logger from '@ioc:Adonis/Core/Logger'
+import Appointment from 'App/Models/Appointment'
+import Medicine from 'App/Models/Medicine'
+import Subscription from 'App/Models/Subscription'
+import { MedicineState } from 'Global/enums'
 import { DateTime } from 'luxon'
 import webpush, { PushSubscription } from 'web-push'
-import { MedicineState } from '../../global/enums'
-import Medicine from '../Models/Medicine'
-import Subscription from '../Models/Subscription'
 
 export default class Notification {
   public async onMedicineNotification() {
@@ -19,6 +20,7 @@ export default class Notification {
       })
 
     activeMedicines.forEach(async (medicine) => {
+      Logger.info('Searching for active notificatinos to send')
       await medicine.patient.load('user')
       const subscription = await Subscription.findBy<any>('userId', medicine.patient.user.id)
 
@@ -38,26 +40,47 @@ export default class Notification {
             if (now.getHours() === dose.hours && Math.abs(now.getMinutes() - dose.minutes) < 30) {
               // send a notification
               const payload = JSON.stringify({
-                title: 'Web push test',
-                name: `${medicine.patient.user.name} take the ${dose.hours}:${dose.minutes} dose`,
+                title: 'موعد جرعة دواء',
+                name: `${medicine.patient.user.name} يجب اخذ ${dose.hours}:${dose.minutes} الجرعة`,
               })
 
-              if (subscription) {
-                try {
-                  webpush.sendNotification(subscription as PushSubscription, payload)
-                  Logger.info(
-                    `sending push to ${medicine.patient.user.name}: take the ${dose.hours}:${dose.minutes} dose`
-                  )
-                } catch {
-                  Logger.error(
-                    `error while sending a push notification to ${medicine.patient.user.id}`
-                  )
-                }
+              try {
+                webpush.sendNotification(subscription as PushSubscription, payload)
+                Logger.info(
+                  `sending push to ${medicine.patient.user.name}: take the ${dose.hours}:${dose.minutes} dose`
+                )
+              } catch {
+                Logger.error(
+                  `error while sending a push notification to ${medicine.patient.user.id}`
+                )
               }
             }
           })
         }
       }
     })
+  }
+
+  public async onAppointmentAccepted(appointmentID: number) {
+    const appointment = await Appointment.findBy('id', appointmentID)
+    await appointment?.load('patient')
+    await appointment?.load('doctor')
+    const patient = appointment?.patient
+    const doctor = appointment?.doctor
+
+    await patient?.load('user')
+    await doctor?.load('user')
+
+    const subscription = await Subscription.findBy<any>('userId', patient?.user.id)
+    try {
+      const payload = JSON.stringify({
+        title: 'قبول الحجز',
+        name: `وافق الطبيب ${doctor?.user.name} على الحجز`,
+      })
+      webpush.sendNotification(subscription as PushSubscription, payload)
+      Logger.info(`sending push to ${patient?.user.name}: about the ${appointment?.id} appointment`)
+    } catch {
+      Logger.error(`error while sending a push notification to ${patient?.user.id}`)
+    }
   }
 }

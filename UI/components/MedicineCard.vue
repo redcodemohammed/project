@@ -1,5 +1,5 @@
 <template>
-  <v-card border class="mx-auto medicine-card" :key="componentKey">
+  <v-card border class="mx-auto medicine-card" :key="componentKey" :loading="loading">
     <v-card-title>
       {{ medicine.name }}
     </v-card-title>
@@ -14,14 +14,14 @@
       <v-timeline v-show="componentKey > 0" class="ma-2" align="start" truncate-line="start">
         <v-timeline-item
           v-for="dosageTime in doses"
-          :key="dosageTime"
-          :dot-color="timeLineChipColor(dosageTime)"
+          :key="dosageTime.color"
+          :dot-color="dosageTime.color"
           size="x-small">
           <template v-slot:opposite>
             <v-btn
-              :disabled="timeLineChipColor(dosageTime) === 'green' || timeLineChipColor(dosageTime) === 'grey'"
+              :disabled="dosageTime.color === 'green' || dosageTime.color === 'grey'"
               @click="take(dosageTime)"
-              :color="timeLineChipColor(dosageTime)"
+              :color="dosageTime.color"
               >تناول</v-btn
             >
           </template>
@@ -64,8 +64,13 @@
 <script lang="ts" setup>
 import { Medicine } from '~~/types'
 
+const http = useFetchAuth()
+
 export interface MedicineCardProps {
   medicine: Medicine
+}
+export interface MedicineCardEmits {
+  (e: 'reload'): void
 }
 
 export interface Dose {
@@ -82,57 +87,53 @@ export interface TakenDose {
 }
 
 const $props = defineProps<MedicineCardProps>()
+const $emit = defineEmits<MedicineCardEmits>()
 
-// const completePercentage = computed(() => {
-//   const MS_IN_DAYS = 1000 * 60 * 60 * 24
-//   const { start_date, end_date } = $props.medicine
-//   const startDate = new Date(start_date)
-//   const endDate = new Date(end_date)
-//   const today = new Date()
-
-//   const daysSinceStarted = (today.getTime() - startDate.getTime()) / MS_IN_DAYS
-//   const durationInDays = (endDate.getTime() - startDate.getTime()) / MS_IN_DAYS
-
-//   return `${(daysSinceStarted / durationInDays) * 100}%`
-// })
-
-// const remainingPercentage = computed(() => {
-//   return '85%'
-// })
 const componentKey = ref(0)
 const takenDoses = useLocalStorage('taken-doeses', [] as TakenDose[])
-function timeLineChipColor({ hours, minutes }: Dose) {
-  const now = new Date()
-  if (takenDoses.value.find(({ dose }) => dose.hours === hours && dose.minutes === minutes)) return 'green'
-  if (now.getHours() - hours > 0) return 'error'
-  return 'grey'
-}
-
+const loading = ref(false)
 function getTimeString({ hours, minutes }: Dose) {
   const ampm = hours >= 12 ? 'مساءً' : 'صباحا'
   return `${hours % 12}:${minutes} ${ampm}`
 }
 
 function take(dose: Dose) {
-  if (!takenDoses.value.find(({ dose: _dose }) => _dose.hours === dose.hours && _dose.minutes === dose.minutes))
-    takenDoses.value.push({
-      dose,
-      medicineID: $props.medicine.id,
-      takenAt: new Date(),
-      userID: $props.medicine.patient_id
+  if (!takenDoses.value.find(({ dose: _dose }) => _dose.hours === dose.hours && _dose.minutes === dose.minutes)) {
+    loading.value = true
+    http(`/medicines/${$props.medicine.id}`, { method: 'PATCH' }).then(() => {
+      takenDoses.value.push({
+        dose,
+        medicineID: $props.medicine.id,
+        takenAt: new Date(),
+        userID: $props.medicine.patient_id
+      })
+      loading.value = false
+      $emit('reload')
     })
-  componentKey.value++
+  }
 }
 
 const doses = computed(() => {
-  const d = $props.medicine.frequency_settings.doses
+  const d: Dose[] = $props.medicine.frequency_settings.doses
+
+  // add the color
   if (Array.isArray(d)) {
-    d.sort((a: Dose, b: Dose) => {
+    const now = new Date()
+    takenDoses.value = takenDoses.value.filter(({ takenAt }) => now.getUTCDay() === new Date(takenAt).getUTCDay())
+
+    const dosesWithBadgeColor: ({ color: 'error' | 'grey' | 'green' } & Dose)[] = d.map((_dose) => {
+      if (takenDoses.value.find(({ dose }) => dose.hours === _dose.hours && dose.minutes === _dose.minutes))
+        return { color: 'green', ..._dose }
+      if (now.getHours() - _dose.hours > 0) return { color: 'error', ..._dose }
+      return { color: 'grey', ..._dose }
+    })
+
+    dosesWithBadgeColor.sort((a, b) => {
       return a.hours - b.hours
     })
+    return dosesWithBadgeColor
   }
-
-  return d
+  return []
 })
 
 // for some reason I need to put this here to rerender the component, other way the colors won't be right

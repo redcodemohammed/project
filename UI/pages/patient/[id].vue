@@ -150,7 +150,9 @@ function chipState(state: string) {
             </v-table>
           </v-card-text>
           <v-card-actions>
-            <v-btn block variant="flat" color="success">بدا محادثة</v-btn>
+            <v-btn :to="{ path: '/chat', query: { patientID: patientUser.id } }" block variant="flat" color="success"
+              >بدا محادثة</v-btn
+            >
           </v-card-actions>
         </v-card>
       </v-col>

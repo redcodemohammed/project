@@ -1,7 +1,16 @@
 <script setup lang="ts">
 import { User } from '~/types'
+import { io, type Socket } from 'socket.io-client'
+import { useAuthStore } from '~/stores'
+import { quartersInYear } from 'date-fns'
 
 const user = useCurrentUser()
+const socket = ref<Socket | null>(null)
+const $route = useRoute()
+const $router = useRouter()
+const $authStore = useAuthStore()
+
+const { SOCKET_URL } = useRuntimeConfig().public
 
 interface IMessage {
   text: string
@@ -14,33 +23,28 @@ interface IMessage {
 const message = ref('')
 const messages = ref<IMessage[]>([])
 const isTyping = ref(false)
+let iamTyping = false
 const messagesContainer = ref(null)
 
-for (let i = 0; i < 10; i++) {
-  onMessageReceived({
-    date: new Date(),
-    sender: user,
-    text: 'message.value',
-    seen: false,
-    mine: Math.random() > 0.8,
-    id: messages.value.length
-  })
-}
 function sendMessage() {
   // send the message
 
   onMessageSent()
 }
 function onMessageSent() {
-  messages.value.push({
+  const newMessage = {
     date: new Date(),
     sender: user,
     text: message.value,
     seen: false,
     mine: true,
     id: messages.value.length
-  })
+  }
+  messages.value.push(newMessage)
   message.value = ''
+  socket.value?.emit('send-message', newMessage)
+  socket.value?.emit('stopped-typing')
+  iamTyping = false
 
   if (messagesContainer.value) {
     setTimeout(() => {
@@ -50,19 +54,51 @@ function onMessageSent() {
   }
 }
 function onMessageReceived(message: IMessage) {
+  message.date = new Date(message.date)
+  message.mine = message.sender.id === user.id
   messages.value.push(message)
+  if (messagesContainer.value) {
+    setTimeout(() => {
+      // @ts-ignore
+      messagesContainer.value.scroll(0, messagesContainer.value.scrollHeight + 1000)
+    }, 1)
+  }
 }
 function onMessageSeen(id: number) {
   for (let i = 0; i < messages.value.length; i++) {
     if (messages.value[i].id === id) messages.value[i].seen = true
   }
 }
+
+let timer = setTimeout(() => {}, 0)
 function onStartTyping() {
-  isTyping.value = true
+  if (!iamTyping) socket.value?.emit('started-typing')
+  iamTyping = true
+
+  clearTimeout(timer)
+  timer = setTimeout(() => {
+    iamTyping = false
+    socket.value?.emit('stopped-typing')
+  }, 3000)
 }
-function onFinishTyping() {
-  isTyping.value = false
-}
+
+onMounted(() => {
+  const roomID = $route.query.doctorID ? `${$route.query.doctorID}-${user.id}` : `${user.id}-${$route.query.patientID}`
+  socket.value = io(`${SOCKET_URL}`, {
+    auth: { token: $authStore.wsToken },
+    query: {
+      roomID
+    }
+  })
+
+  socket.value.on('get-message', onMessageReceived)
+  socket.value.on('started-typing', () => (isTyping.value = true))
+  socket.value.on('stopped-typing', () => (isTyping.value = false))
+  onStartTyping()
+})
+onBeforeUnmount(() => {
+  socket.value?.disconnect()
+})
 </script>
 
 <template>
@@ -108,7 +144,11 @@ function onFinishTyping() {
                 <VBtn @click="sendMessage" icon="mdi-send"></VBtn>
               </v-col>
               <v-col cols="9" lg="11">
-                <VTextField v-model="message" @keydown.enter="sendMessage" label="اكتب الرسالة"></VTextField>
+                <VTextField
+                  @update:modelValue="onStartTyping"
+                  v-model="message"
+                  @keydown.enter="sendMessage"
+                  label="اكتب الرسالة"></VTextField>
               </v-col>
             </v-row>
           </VCardText>

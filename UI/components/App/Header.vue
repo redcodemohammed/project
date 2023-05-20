@@ -10,7 +10,11 @@ const links = computed(() => {
     { name: 'الاعدادات', icon: 'mdi-cog-outline', to: '/settings' }
   ]
 
-  const doctorLinks = [{ name: 'الصفحة الرئيسية', icon: 'mdi-account-outline', to: '/patients' }, ...links]
+  const doctorLinks = [
+    { name: 'الصفحة الرئيسية', icon: 'mdi-account-outline', to: '/patients' },
+    { name: 'الحجوزات', icon: 'mdi-timelapse', to: '/appointments' },
+    ...links
+  ]
   const patientLinks = [
     { name: 'الصفحة الرئيسية', icon: 'mdi-home-outline', to: '/' },
     { name: 'قائمة الادوية', icon: 'mdi-medication-outline', to: '/medicines' },
@@ -35,7 +39,7 @@ const drawer = ref(false)
     </v-list>
   </v-navigation-drawer>
 
-  <v-app-bar density="compact" border title="Application bar">
+  <v-app-bar density="compact" border title="''">
     <v-btn v-if="$authStore.isLoggedIn" @click="$authStore.logout">{{ $t('actions.logout') }}</v-btn>
     <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
   </v-app-bar>

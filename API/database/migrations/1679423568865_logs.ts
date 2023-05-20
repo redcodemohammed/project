@@ -1,5 +1,5 @@
 import BaseSchema from '@ioc:Adonis/Lucid/Schema'
-import { Status } from '../../global/enums'
+import { Status } from 'Global/enums'
 
 export default class extends BaseSchema {
   protected tableName = 'logs'

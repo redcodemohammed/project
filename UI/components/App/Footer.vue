@@ -1,3 +1,3 @@
 <template>
-  <VFooter border app>Footer</VFooter>
+  <div></div>
 </template>

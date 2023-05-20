@@ -13,6 +13,7 @@ import Doctor from './Doctor'
 import User from './User'
 import { Gender } from '../../global/enums'
 import Medicine from './Medicine'
+import Appointment from './Appointment'
 
 export default class Patient extends BaseModel {
   @column({ isPrimary: true })
@@ -45,4 +46,7 @@ export default class Patient extends BaseModel {
 
   @hasMany(() => Medicine)
   public medicines: HasMany<typeof Medicine>
+
+  @hasMany(() => Appointment)
+  public appointment: HasMany<typeof Appointment>
 }

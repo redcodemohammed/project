@@ -1,8 +1,9 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { schema } from '@ioc:Adonis/Core/Validator'
-import Medicine from '../../Models/Medicine'
-import User from '../../Models/User'
-import { MedicineState } from '../../../global/enums'
+import Log from 'App/Models/Log'
+import Medicine from 'App/Models/Medicine'
+import User from 'App/Models/User'
+import { MedicineState, Status } from 'Global/enums'
 import { DateTime } from 'luxon'
 
 export default class MedicinesController {
@@ -151,5 +152,36 @@ export default class MedicinesController {
     )
 
     return medicines
+  }
+
+  public async takePill({ bouncer, request, response }: HttpContextContract) {
+    const {
+      params: { id: medicineID },
+    } = await request.validate({
+      schema: schema.create({
+        params: schema.object([]).members({
+          id: schema.number(),
+        }),
+      }),
+    })
+
+    const medicine = await Medicine.findBy('id', medicineID)
+    if (medicine) {
+      // check if the current user can take a pill
+      await bouncer.authorize('takePill', medicine)
+      await bouncer.authorize('pillsAvailable', medicine)
+
+      const log = await Log.create({ medicine_id: medicineID, status: Status.Taken })
+
+      medicine.quantity--
+
+      await medicine.save()
+
+      return log.toJSON()
+    } else {
+      return response.notFound({
+        message: `medicine with id ${medicineID} was not found`,
+      })
+    }
   }
 }

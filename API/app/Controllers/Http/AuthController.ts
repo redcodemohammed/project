@@ -1,9 +1,10 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { rules, schema } from '@ioc:Adonis/Core/Validator'
-import { MedicineState, UserType } from '../../../global/enums'
-import Doctor from '../../Models/Doctor'
-import Patient from '../../Models/Patient'
-import User from '../../Models/User'
+import { MedicineState, UserType } from 'Global/enums'
+import Doctor from 'App/Models/Doctor'
+import Encryption from '@ioc:Adonis/Core/Encryption'
+import Patient from 'App/Models/Patient'
+import User from 'App/Models/User'
 
 export default class AuthController {
   public async register({ request, auth }: HttpContextContract) {
@@ -55,7 +56,11 @@ export default class AuthController {
 
     try {
       const token = await auth.use('api').attempt(email, password)
-      return token
+      const user = await User.findBy('email', email)
+      if (user) {
+        const wsToken = await Encryption.encrypt(user.id)
+        return { ...token.toJSON(), wsToken }
+      }
     } catch {
       return response.unauthorized('Invalid credentials')
     }
@@ -128,11 +133,6 @@ export default class AuthController {
     const currentDoctor = (await Doctor.findBy('user_id', currentUser.id)) as Doctor
 
     const patients = await currentDoctor.related('patients').query().preload('user')
-    // if (patients) {
-    //   for (let i = 0; i < patients.length; i++) {
-    //     await patients[i].load('user')
-    //   }
-    // }
 
     return patients
   }

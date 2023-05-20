@@ -7,15 +7,17 @@ export const useAuthStore = defineStore('auth-store', () => {
   const $router = useRouter()
 
   const accessTokenRef = useCookie('accessToken')
+  const wsTokenRef = useCookie('wsToken')
   const userRef = ref<User | null>(null)
   const isLoggedInRef = computed(() => !!accessTokenRef.value)
 
   async function login(email: string, password: string) {
     const url = `${API_URL}${UserEndpoints.Login}`
     const body = { email, password }
-    const { token } = await $fetch<AuthResponse>(url, { body, method: 'POST' })
+    const { token, wsToken } = await $fetch<AuthResponse>(url, { body, method: 'POST' })
 
     accessTokenRef.value = token
+    wsTokenRef.value = wsToken
 
     await fetchUser()
 
@@ -77,6 +79,7 @@ export const useAuthStore = defineStore('auth-store', () => {
   return {
     API_URL,
     accessToken: accessTokenRef,
+    wsToken: wsTokenRef,
     user: userRef,
     isLoggedIn: isLoggedInRef,
     login,

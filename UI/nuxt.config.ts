@@ -28,8 +28,7 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
     '@pinia/nuxt',
     'nuxt-typed-router',
-    '@vueuse/nuxt',
-    'nuxt-socket-io'
+    '@vueuse/nuxt'
   ],
 
   i18n: {
@@ -46,6 +45,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       API_URL: process.env.API_URL || 'http://localhost:3333/v1',
+      SOCKET_URL: process.env.API_URL || 'http://localhost:5555',
       PUBLIC_VAPID_KEY:
         process.env.PUBLIC_VAPID_KEY ||
         'BG--p9X-r8r_g3gRLFnXaunMdAyg80xXsvFcqommb-yvwQJVjeFSprhN7zDHVkQ8oMi2518K1h5OcDbGCVzgdrM'

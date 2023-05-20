@@ -6,8 +6,11 @@
  */
 
 import Bouncer from '@ioc:Adonis/Addons/Bouncer'
-import User from '../app/Models/User'
-import { UserType } from '../global/enums'
+import Appointment from 'App/Models/Appointment'
+import Doctor from 'App/Models/Doctor'
+import Medicine from 'App/Models/Medicine'
+import User from 'App/Models/User'
+import { UserType } from 'Global/enums'
 
 /*
 |--------------------------------------------------------------------------
@@ -55,7 +58,27 @@ export const { actions } = Bouncer
   .define('getTodaysMedicines', (user: User) => {
     return user.userType === UserType.Patient
   })
-
+  /**
+   * check if the current patient owns this medicine
+   */
+  .define('takePill', (user: User, medicine: Medicine) => {
+    return user.userType === UserType.Patient && medicine.patientId === user.patientId
+  })
+  .define('pillsAvailable', (_user: User, medicine: Medicine) => {
+    return medicine.quantity > 0
+  })
+  .define('createAppointments', (user: User) => {
+    return user.userType === UserType.Patient
+  })
+  .define('showAppointments', (user: User) => {
+    return user.userType === UserType.Doctor
+  })
+  .define('acceptAppointments', (user: User) => {
+    return user.userType === UserType.Doctor
+  })
+  .define('acceptAppointment', (_user: User, doctor: Doctor, appointment: Appointment) => {
+    return doctor.id === appointment.doctorId
+  })
 /*
 |--------------------------------------------------------------------------
 | Bouncer Policies

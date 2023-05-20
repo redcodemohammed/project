@@ -12,6 +12,7 @@ import { DateTime } from 'luxon'
 import Patient from './Patient'
 import User from './User'
 import Medicine from './Medicine'
+import Appointment from './Appointment'
 
 export default class Doctor extends BaseModel {
   @column({ isPrimary: true })
@@ -38,4 +39,7 @@ export default class Doctor extends BaseModel {
 
   @hasMany(() => Medicine)
   public medicines: HasMany<typeof Medicine>
+
+  @hasMany(() => Appointment)
+  public appointment: HasMany<typeof Appointment>
 }
